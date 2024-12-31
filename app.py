@@ -211,6 +211,65 @@ def get_english_city_news():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get_news', methods=['GET'])
+def get_news():
+    # Define RSS feed URLs for predefined categories
+    rss_urls = [
+        'https://www.news18.com/commonfeeds/v1/eng/rss/lifestyle-2.xml',
+        'https://www.news18.com/commonfeeds/v1/eng/rss/movies.xml'
+    ]
+    
+    try:
+        all_news_articles = []
+        
+        # Fetch and parse each RSS feed
+        for rss_url in rss_urls:
+            feed = fetch_rss_feed(rss_url)
+            
+            for entry in feed.entries:
+                image_url = extract_image_url(entry)
+                summary = entry.summary.strip()
+                all_news_articles.append({
+                    'title': entry.title,
+                    'link': entry.link,
+                    'summary': summary,
+                    'published': entry.published,
+                    'image_url': image_url
+                })
+        
+        # Return the list of news articles from all feeds
+        return jsonify(all_news_articles)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/get_sun_news', methods=['GET'])
+def get_sun_news():
+    rss_url = 'https://fetchrss.com/rss/6774461d2fe478aa030177026774460744e7b82c5407c544.rss'
+    
+    try:
+        all_news_articles = []
+        
+        # Fetch and parse the RSS feed
+        feed = fetch_rss_feed(rss_url)
+        
+        for entry in feed.entries:
+            image_url = entry.media_content[0]['url'] if hasattr(entry, "media_content") and entry.media_content else None
+            summary = entry.description.strip() if entry.description else None
+            all_news_articles.append({
+                'title': entry.title,
+                'link': entry.link,
+                'summary': summary,
+                'published': entry.published,
+                'image_url': image_url
+            })
+        
+        # Return the list of news articles from the RSS feed
+        return jsonify(all_news_articles)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/')
 def home():
     return "Welcome to the Live App!"
