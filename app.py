@@ -15,15 +15,23 @@ app = Flask(__name__)
 # Enable CORS for all routes
 CORS(app)
 
-# Load Tamil model, tokenizer, and label encoder
-tamil_model = load_model('tamil_model.h5')
-tamil_tokenizer = pickle.load(open('tamil_tokenizer.pkl', 'rb'))
-tamil_label_encoder = pickle.load(open('tamil_label_encoder.pkl', 'rb'))
+# Preload models and resources at the start
+def load_resources():
+    global tamil_model, tamil_tokenizer, tamil_label_encoder
+    global english_model, english_tokenizer, english_label_encoder
 
-# Load English model, tokenizer, and label encoder
-english_model = load_model('english_model.h5')
-english_tokenizer = pickle.load(open('tokenizer.pkl', 'rb'))
-english_label_encoder = pickle.load(open('label_encoder.pkl', 'rb'))
+    # Load Tamil model, tokenizer, and label encoder
+    tamil_model = load_model('tamil_model.h5')
+    tamil_tokenizer = pickle.load(open('tamil_tokenizer.pkl', 'rb'))
+    tamil_label_encoder = pickle.load(open('tamil_label_encoder.pkl', 'rb'))
+
+    # Load English model, tokenizer, and label encoder
+    english_model = load_model('english_model.h5')
+    english_tokenizer = pickle.load(open('tokenizer.pkl', 'rb'))
+    english_label_encoder = pickle.load(open('label_encoder.pkl', 'rb'))
+
+# Call load_resources once to preload models and resources when the app starts
+load_resources()
 
 # Function to fetch RSS feed
 def fetch_rss_feed(rss_url):
@@ -238,9 +246,8 @@ def get_news():
                     'image_url': image_url
                 })
         
-        # Return the list of news articles from all feeds
         return jsonify(all_news_articles)
-
+    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -276,5 +283,4 @@ def home():
     return "Welcome to the Live App!"
 
 if __name__ == '__main__':
-    # Use the port Render provides via the PORT environment variable
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(debug=True)
